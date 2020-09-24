@@ -1,12 +1,14 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/System.hpp>
+#include <math.h>
 
 using namespace sf;
 using namespace std;
 
 struct Sphere
 {
+    int mass;
     int x;
     int y;
     int radius;
@@ -45,16 +47,33 @@ void collideWithWall(Sphere* sphere)
 void collideTwoSpheres(Sphere* sphere1, Sphere* sphere2)
 {
     if (checkCollision(*sphere1, *sphere2))
-    {
+    {  
+
         float speedX1Test = sphere1->speedX;
         float speedY1Test = sphere1->speedY;
         float speedX2Test = sphere2->speedX;
         float speedY2Test = sphere2->speedY;
 
-        sphere1->speedX = speedX2Test;
-        sphere1->speedY = speedY2Test;
-        sphere2->speedX = speedX1Test;
-        sphere2->speedY = speedY1Test;
+        if (abs(sphere1->mass - sphere2->mass) <= 10)
+        {
+            sphere1->speedX = speedX2Test;
+            sphere1->speedY = speedY2Test;
+            sphere2->speedX = speedX1Test;
+            sphere2->speedY = speedY1Test;
+        }
+
+        else if (sphere1->mass > sphere2->mass)
+        {
+            sphere2->speedX = -speedX2Test + 2 * speedX1Test;
+            sphere2->speedY = -speedY2Test + 2 * speedY1Test;   
+        }
+        else
+        {
+            sphere1->speedX = -speedX1Test + 2 * speedX2Test;
+            sphere1->speedY = -speedY1Test + 2 * speedY2Test;
+        }
+        
+        
     }
 }
 
@@ -92,13 +111,13 @@ bool clickStartButton(Vector2i mousePosition, RenderWindow* window)
 
 int main()
 {
-    Sphere sphereEnemy1 = {20, 20, 35, 7, 8, 255, 0, 0, 100};
-    Sphere sphereEnemy2 = {710, 510, 35, 5, 9, 255, 0, 0, 100};
-    Sphere sphereFriend1 = {20, 510, 35, -6, 6, 0, 255, 0, 100};
-    Sphere sphereFriend2 = {710, 20, 35, 5, -7, 0, 255, 0, 100};
-    Sphere sphereNeutral1 = {50, 265, 35, -3, -10, 255, 255, 0, 100};
-    Sphere sphereNeutral2 = {680, 265, 35, 9, -8, 255, 255, 0, 100};
-    Sphere sphereYou = {300, 200, 100, 0, 0, 255, 255, 255, 100};
+    Sphere sphereEnemy1 = {10, 20, 20, 35, 7, 8, 255, 0, 0, 100};
+    Sphere sphereEnemy2 = {10, 710, 510, 35, 5, 9, 255, 0, 0, 100};
+    Sphere sphereFriend1 = {10, 20, 510, 35, -6, 6, 0, 255, 0, 100};
+    Sphere sphereFriend2 = {10, 710, 20, 35, 5, -7, 0, 255, 0, 100};
+    Sphere sphereNeutral1 = {10, 50, 265, 35, -3, -10, 255, 255, 0, 100};
+    Sphere sphereNeutral2 = {10, 680, 265, 35, 9, -8, 255, 255, 0, 100};
+    Sphere sphereYou = {100, 300, 200, 100, 0, 0, 255, 255, 255, 100};
 
     int dT = 1;
 
@@ -175,9 +194,9 @@ int main()
 
         window.clear();
 
-        Vector2i mousePosition = Mouse::getPosition(window);
-        sphereYou.x = mousePosition.x - 25;
-        sphereYou.y = mousePosition.y - 25; 
+        Vector2i mousePosition1 = Mouse::getPosition(window);
+        sphereYou.x = mousePosition1.x - 25;
+        sphereYou.y = mousePosition1.y - 25; 
 
         drawSphere(sphereEnemy1, &window);
         drawSphere(sphereEnemy2, &window);
@@ -233,6 +252,15 @@ int main()
         collideWithWall(&sphereFriend2);
         collideWithWall(&sphereNeutral1);
         collideWithWall(&sphereNeutral2);
+        
+        Vector2i mousePosition2 = Mouse::getPosition(window);
+        sphereYou.speedX = (mousePosition2.x - 25 - sphereYou.x) / dT;
+        sphereYou.speedY = (mousePosition2.y - 25 - sphereYou.y) / dT;
+
+        collideTwoSpheres(&sphereYou, &sphereFriend1);
+        collideTwoSpheres(&sphereYou, &sphereFriend2);
+        collideTwoSpheres(&sphereYou, &sphereNeutral1);
+        collideTwoSpheres(&sphereYou, &sphereNeutral2);
 
         collideTwoSpheres(&sphereEnemy1, &sphereEnemy2);
         collideTwoSpheres(&sphereEnemy1, &sphereFriend1);
