@@ -1,10 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/System.hpp>
-#include <math.h>
-
-using namespace sf;
-using namespace std;
 
 struct Sphere
 {
@@ -19,6 +15,13 @@ struct Sphere
     int colorBlue;
     int detailCirclesNum;
 };
+
+void waitUntilButtonPressed()
+{
+    while (!sf::Mouse::isButtonPressed(sf::Mouse::Left))
+            {
+            }   
+}
 
 void moveSphere(Sphere* sphere, int dT)
 {
@@ -46,67 +49,91 @@ void collideWithWall(Sphere* sphere)
 
 void collideTwoSpheres(Sphere* sphere1, Sphere* sphere2)
 {
-    if (checkCollision(*sphere1, *sphere2))
-    {  
+    if (!checkCollision(*sphere1, *sphere2))
+    {
+        return;
+    }
 
-        float speedX1Test = sphere1->speedX;
-        float speedY1Test = sphere1->speedY;
-        float speedX2Test = sphere2->speedX;
-        float speedY2Test = sphere2->speedY;
+    float speedX1BeforeCollision = sphere1->speedX;
+    float speedY1BeforeCollision = sphere1->speedY;
+    float speedX2BeforeCollision = sphere2->speedX;
+    float speedY2BeforeCollision = sphere2->speedY;
 
-        if (abs(sphere1->mass - sphere2->mass) <= 10)
-        {
-            sphere1->speedX = speedX2Test;
-            sphere1->speedY = speedY2Test;
-            sphere2->speedX = speedX1Test;
-            sphere2->speedY = speedY1Test;
-        }
+    if (sphere1->mass == sphere2->mass)
+    {
+        sphere1->speedX = speedX2BeforeCollision;
+        sphere1->speedY = speedY2BeforeCollision;
+        sphere2->speedX = speedX1BeforeCollision;
+        sphere2->speedY = speedY1BeforeCollision;
+    }
 
-        else if (sphere1->mass > sphere2->mass)
-        {
-            sphere2->speedX = -speedX2Test + 2 * speedX1Test;
-            sphere2->speedY = -speedY2Test + 2 * speedY1Test;   
-        }
-        else
-        {
-            sphere1->speedX = -speedX1Test + 2 * speedX2Test;
-            sphere1->speedY = -speedY1Test + 2 * speedY2Test;
-        }
-        
-        
+    else if (sphere1->mass > sphere2->mass)
+    {
+        sphere2->speedX = -speedX2BeforeCollision + 2 * speedX1BeforeCollision;
+        sphere2->speedY = -speedY2BeforeCollision + 2 * speedY1BeforeCollision;   
+    }
+
+    else
+    {
+        sphere1->speedX = -speedX1BeforeCollision + 2 * speedX2BeforeCollision;
+        sphere1->speedY = -speedY1BeforeCollision + 2 * speedY2BeforeCollision;
     }
 }
 
-void drawSphere(Sphere sphere, RenderWindow* window)
+void drawSphere(Sphere sphere, sf::RenderWindow* window)
 {
     for (int i = 0; i < sphere.detailCirclesNum; i++)
     {
-            CircleShape circle(sphere.radius - i * sphere.radius / sphere.detailCirclesNum, 100);
+            sf::CircleShape circle(sphere.radius - i * sphere.radius / sphere.detailCirclesNum, 100);
             circle.setPosition(sphere.x + i * sphere.radius / sphere.detailCirclesNum, sphere.y + i * sphere.radius / sphere.detailCirclesNum);
-            circle.setFillColor(Color(sphere.colorRed * i / sphere.detailCirclesNum, sphere.colorGreen * i / sphere.detailCirclesNum, sphere.colorBlue * i / sphere.detailCirclesNum));
+            circle.setFillColor(sf::Color(sphere.colorRed * i / sphere.detailCirclesNum, sphere.colorGreen * i / sphere.detailCirclesNum, sphere.colorBlue * i / sphere.detailCirclesNum));
             window->draw(circle);
     }
 }
 
-void printText(int x, int y, String textText, Font textFont, int textSize, Color textColor, RenderWindow* window)
+void printText(int x, int y, sf::String textText, sf::Font textFont, int textSize, sf::Color textColor, sf::RenderWindow* window)
 {
-    Text text(textText, textFont, textSize);
+    sf::Text text(textText, textFont, textSize);
     text.setPosition(x, y);
     text.setFillColor(textColor);
     window->draw(text);
 }
 
-bool clickStartButton(Vector2i mousePosition, RenderWindow* window)
+bool clickStartButton(sf::Vector2i mousePosition, sf::RenderWindow* window)
 {
-    if (300 < mousePosition.x && mousePosition.x < 500 && 200 < mousePosition.y && mousePosition.y < 400 &&  Mouse::isButtonPressed(Mouse::Left))
+    if (300 < mousePosition.x && mousePosition.x < 500 && 200 < mousePosition.y && mousePosition.y < 400 &&  sf::Mouse::isButtonPressed(sf::Mouse::Left))
     {
         return true;
     }
 
-    else
+    return false;
+}
+
+void setControlledSphereParametrs(Sphere* sphere, int dT, sf::RenderWindow* window)
+{
+    sf::Vector2i mousePosition = sf::Mouse::getPosition(*window);
+
+    sphere->speedX = (mousePosition.x - sphere->radius - sphere->x) / dT;
+    sphere->speedY = (mousePosition.y - sphere->radius - sphere->y) / dT;
+    
+    sphere->x = mousePosition.x - sphere->radius;
+    sphere->y = mousePosition.y - sphere->radius;    
+}
+
+bool checkWinConditions(Sphere* sphereYou, Sphere* sphereFriend)
+{
+    if (checkCollision(*sphereYou, *sphereFriend) || sphereFriend->colorRed == 255)
     {
-        return false;
+        sphereFriend->colorRed = 255;
+        return true;
     }
+
+    return false;
+}
+
+bool checkLoseConditions(Sphere sphereYou, Sphere sphereEnemy)
+{
+    return checkCollision(sphereYou, sphereEnemy);
 }
 
 int main()
@@ -121,22 +148,21 @@ int main()
 
     int dT = 1;
 
-    Font textFont;
+    sf::Font textFont;
     if (!textFont.loadFromFile("TimesNewRoman.ttf"))
+    {
         return EXIT_FAILURE;
-    Color textColorStartScreen = Color::White;
-    Color textColorWin = Color::Green;
-    Color textColorLose = Color::Red;
+    }
+    sf::Color textColorStartScreen = sf::Color::White;
+    sf::Color textColorWin = sf::Color::Green;
+    sf::Color textColorLose = sf::Color::Red;
     int textSize = 200;
     int textSizeLose = 150;
-    int textSizeWin = 150;
+    int textSizeWin = 150; 
 
-    RenderWindow window(VideoMode(800, 600), "SFML window");
-    window.setVerticalSyncEnabled(true); 
-    CircleShape shape(100);
-    shape.setFillColor(Color(255, 255, 0));
-    shape.setPosition(100, 100);    
+    bool isGameStarted = false;  
 
+    sf::RenderWindow window(sf::VideoMode(800, 600), "SFML window");
     window.clear();
 
     drawSphere(sphereEnemy1, &window);
@@ -156,17 +182,19 @@ int main()
 
     while (window.isOpen())
     {
-        Event event;
+        sf::Event event;
         while (window.pollEvent(event))
         {
-            if (event.type == Event::Closed)
+            if (event.type == sf::Event::Closed)
             {
                 window.close();
             }
         }
 
-        if (clickStartButton(Mouse::getPosition(window), &window))
+        if (!isGameStarted && clickStartButton(sf::Mouse::getPosition(window), &window))
         {
+            isGameStarted = true;
+
             for (int i = 101; i > 25; i--)
             {
                 sphereYou.radius = i;
@@ -176,27 +204,16 @@ int main()
 
                 window.display();
             }
-
-            break;
         }
-    }
 
-    while (window.isOpen())
-    {
-        Event event;
-        while (window.pollEvent(event))
+        if (!isGameStarted)
         {
-            if (event.type == Event::Closed)
-            {
-                window.close();
-            }
+            continue;
         }
 
         window.clear();
 
-        Vector2i mousePosition1 = Mouse::getPosition(window);
-        sphereYou.x = mousePosition1.x - 25;
-        sphereYou.y = mousePosition1.y - 25; 
+        setControlledSphereParametrs(&sphereYou, dT, &window);
 
         drawSphere(sphereEnemy1, &window);
         drawSphere(sphereEnemy2, &window);
@@ -208,7 +225,7 @@ int main()
 
         window.display();
 
-        if (checkCollision(sphereYou, sphereEnemy1) || checkCollision(sphereYou, sphereEnemy2))
+        if (checkLoseConditions(sphereYou, sphereEnemy1) || checkLoseConditions(sphereYou, sphereEnemy2))
         {
             window.clear();
 
@@ -216,23 +233,15 @@ int main()
 
             window.display();
             
-            while (!Mouse::isButtonPressed(Mouse::Left))
-            {
-            }
+            waitUntilButtonPressed();
+            
             return 0;
         }
 
-        if (checkCollision(sphereYou, sphereFriend1))
-        {
-            sphereFriend1.colorRed = 255;
-        }
-
-        if (checkCollision(sphereYou, sphereFriend2))
-        {
-            sphereFriend2.colorRed = 255;
-        }
-
-        if (sphereFriend1.colorRed == 255 && sphereFriend2.colorRed == 255)
+        setControlledSphereParametrs(&sphereYou, dT, &window);
+        checkWinConditions(&sphereYou, &sphereFriend1);
+        checkWinConditions(&sphereYou, &sphereFriend2);
+        if (checkWinConditions(&sphereYou, &sphereFriend1) && checkWinConditions(&sphereYou, &sphereFriend2))
         {
             window.clear();
 
@@ -240,9 +249,8 @@ int main()
 
             window.display();
 
-            while (!Mouse::isButtonPressed(Mouse::Left))
-            {
-            }
+            waitUntilButtonPressed();
+
             return 0;
         }
 
@@ -252,10 +260,6 @@ int main()
         collideWithWall(&sphereFriend2);
         collideWithWall(&sphereNeutral1);
         collideWithWall(&sphereNeutral2);
-        
-        Vector2i mousePosition2 = Mouse::getPosition(window);
-        sphereYou.speedX = (mousePosition2.x - 25 - sphereYou.x) / dT;
-        sphereYou.speedY = (mousePosition2.y - 25 - sphereYou.y) / dT;
 
         collideTwoSpheres(&sphereYou, &sphereFriend1);
         collideTwoSpheres(&sphereYou, &sphereFriend2);
