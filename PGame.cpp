@@ -16,13 +16,6 @@ struct Sphere
     int detailCirclesNum;
 };
 
-void waitUntilButtonPressed()
-{
-    while (!sf::Mouse::isButtonPressed(sf::Mouse::Left))
-            {
-            }   
-}
-
 void moveSphere(Sphere* sphere, int dT)
 {
     sphere->x = sphere->x + sphere->speedX * dT;
@@ -160,7 +153,8 @@ int main()
     int textSizeLose = 150;
     int textSizeWin = 150; 
 
-    bool isGameStarted = false;  
+    bool isGameStarted = false;
+    bool isGameEnded = false;  
 
     sf::RenderWindow window(sf::VideoMode(800, 600), "SFML window");
     window.clear();
@@ -189,6 +183,16 @@ int main()
             {
                 window.close();
             }
+        }
+
+        if (isGameEnded && sf::Mouse::isButtonPressed(sf::Mouse::Left))
+        {
+            return 0;
+        }
+
+        if (isGameEnded)
+        {
+            continue;
         }
 
         if (!isGameStarted && clickStartButton(sf::Mouse::getPosition(window), &window))
@@ -233,9 +237,9 @@ int main()
 
             window.display();
             
-            waitUntilButtonPressed();
-            
-            return 0;
+            isGameEnded = true;
+
+            continue;
         }
 
         setControlledSphereParametrs(&sphereYou, dT, &window);
@@ -249,9 +253,9 @@ int main()
 
             window.display();
 
-            waitUntilButtonPressed();
+            isGameEnded = true;
 
-            return 0;
+            continue;
         }
 
         collideWithWall(&sphereEnemy1);
