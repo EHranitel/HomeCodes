@@ -2,6 +2,12 @@
 #include <SFML/Window.hpp>
 #include <SFML/System.hpp>
 
+enum GameState
+{
+    NotStarted,
+    Started,
+    Finished,
+};
 struct Sphere
 {
     int mass;
@@ -153,8 +159,7 @@ int main()
     int textSizeLose = 150;
     int textSizeWin = 150; 
 
-    bool isGameStarted = false;
-    bool isGameEnded = false;  
+    GameState state = GameState::NotStarted;
 
     sf::RenderWindow window(sf::VideoMode(800, 600), "SFML window");
     window.clear();
@@ -185,19 +190,19 @@ int main()
             }
         }
 
-        if (isGameEnded && sf::Mouse::isButtonPressed(sf::Mouse::Left))
+        if (state == GameState::Finished && sf::Mouse::isButtonPressed(sf::Mouse::Left))
         {
             return 0;
         }
 
-        if (isGameEnded)
+        if (state == GameState::Finished)
         {
             continue;
         }
 
-        if (!isGameStarted && clickStartButton(sf::Mouse::getPosition(window), &window))
+        if (state == GameState::NotStarted && clickStartButton(sf::Mouse::getPosition(window), &window))
         {
-            isGameStarted = true;
+            state = GameState::Started;
 
             for (int i = 101; i > 25; i--)
             {
@@ -210,7 +215,7 @@ int main()
             }
         }
 
-        if (!isGameStarted)
+        if (state == GameState::NotStarted)
         {
             continue;
         }
@@ -237,7 +242,7 @@ int main()
 
             window.display();
             
-            isGameEnded = true;
+            state = GameState::Finished;
 
             continue;
         }
@@ -253,7 +258,7 @@ int main()
 
             window.display();
 
-            isGameEnded = true;
+            state = GameState::Finished;
 
             continue;
         }
