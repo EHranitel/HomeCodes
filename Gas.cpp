@@ -1,13 +1,15 @@
 #include <iostream>
 #include <cstdlib>
+#include <math.h>
+#include <cassert>
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/System.hpp>
 
 struct Sphere
 {
-    int x;
-    int y;
+    float x;
+    float y;
     int radius;
     float speedX;
     float speedY;
@@ -25,19 +27,52 @@ void moveSphere(Sphere* sphere, int dT)
 
 bool checkCollision(Sphere sphere1, Sphere sphere2)
 {
-    return (sphere1.x - sphere2.x) * (sphere1.x - sphere2.x) + (sphere1.y - sphere2.y) * (sphere1.y - sphere2.y) <= (sphere1.radius + sphere2.radius) * (sphere1.radius + sphere2.radius);
+    return (sphere1.x - sphere2.x) * (sphere1.x - sphere2.x) + (sphere1.y - sphere2.y) * (sphere1.y - sphere2.y) < (sphere1.radius + sphere2.radius) * (sphere1.radius + sphere2.radius);
 }
 
 void collideWithWall(Sphere* sphere)
 {
-    if((sphere->x + 2 * sphere->radius >= 1920 && sphere->speedX > 0) || (sphere->x <= 0 && sphere->speedX < 0))
+    if(sphere->x + 2 * sphere->radius > 1000)
     {
         sphere->speedX = - sphere->speedX;
+
+        float deltaX = sphere->x + 2 * sphere->radius - 1000;
+        float deltaY = (sphere->speedY / abs(sphere->speedY)) * (abs(sphere->speedY / sphere->speedX) * deltaX);
+
+        sphere->x -= deltaX;
+        sphere->y -= deltaY;
+        
+    }
+    if(sphere->x < 0)
+    {
+        sphere->speedX = - sphere->speedX;
+
+        float deltaX = - sphere->x;
+        float deltaY = (sphere->speedY / abs(sphere->speedY)) * (abs(sphere->speedY / sphere->speedX) * deltaX);
+
+        sphere->x += deltaX; 
+        sphere->y -= deltaY; 
     }
 
-    if((sphere->y + 2 * sphere->radius >= 1080 && sphere->speedY > 0) || (sphere->y <= 0 & sphere->speedY < 0))
+    if(sphere->y + 2 * sphere->radius > 800)
     {
         sphere->speedY = - sphere->speedY;
+
+        float deltaY = sphere->y + 2 * sphere->radius - 800;
+        float deltaX = (sphere->speedX / abs(sphere->speedX)) * (abs(sphere->speedX / sphere->speedY) * deltaY);
+
+        sphere->y -= deltaY;
+        sphere->x -= deltaX;
+    }
+    if(sphere->y < 0)
+    {
+        sphere->speedY = - sphere->speedY;
+
+        float deltaY = - sphere->y;
+        float deltaX = (sphere->speedX / abs(sphere->speedX)) * (abs(sphere->speedX / sphere->speedY) * deltaY);
+
+        sphere->y += deltaY; 
+        sphere->x -= deltaX; 
     }
 }
 
@@ -53,11 +88,23 @@ void collideTwoSpheres(Sphere* sphere1, Sphere* sphere2)
     float speedX2BeforeCollision = sphere2->speedX;
     float speedY2BeforeCollision = sphere2->speedY;
 
+    float distBefore = sqrt((sphere1->x - sphere2->x) * (sphere1->x - sphere2->x) + (sphere1->y - sphere2->y) * (sphere1->y - sphere2->y));
+
+    assert(distBefore);
+
+    float distAfter = sphere1->radius + sphere2->radius;
+    float deltaX = abs(sphere1->x - sphere2->x) * distAfter / (2 * distBefore);
+    float deltaY = abs(sphere1->y - sphere2->y) * distAfter / (2 * distBefore);
+
     sphere1->speedX = speedX2BeforeCollision;
     sphere1->speedY = speedY2BeforeCollision;
     sphere2->speedX = speedX1BeforeCollision;
     sphere2->speedY = speedY1BeforeCollision;
 
+    sphere1->x += ((sphere1->x - sphere2->x) / abs(sphere1->x - sphere2->x)) * deltaX;
+    sphere2->x += ((sphere2->x - sphere1->x) / abs(sphere2->x - sphere1->x)) * deltaX;
+    sphere1->y += ((sphere1->y - sphere2->y) / abs(sphere1->y - sphere2->y)) * deltaY;
+    sphere2->y += ((sphere2->y - sphere1->y) / abs(sphere2->y - sphere1->y)) * deltaY;
 }
 
 void drawSphere(Sphere sphere, sf::RenderWindow* window)
@@ -73,23 +120,25 @@ void drawSphere(Sphere sphere, sf::RenderWindow* window)
 
 int main()
 {
-    Sphere particles[100];
+    Sphere particles[500];
 
     int dT = 1;
 
-    sf::RenderWindow window(sf::VideoMode(1920, 1080), "SFML window");
+    sf::RenderWindow window(sf::VideoMode(1000, 800), "SFML window");
 
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < 500; i++)
     {   
-        particles[i].x = 20 + rand()%(1900-20+1);
-        particles[i].y = 20 + rand()%(1060-20+1);
-        particles[i].radius = 10;
-        particles[i].speedY = -10 + rand()%(20+10+1);
-        particles[i].speedX = -10 + rand()%(20+10+1);
-        particles[i].colorRed = 0;
-        particles[i].colorGreen = 0;
+        assert(particles);
+
+        particles[i].x = 20 + rand()%(980-20+1);
+        particles[i].y = 20 + rand()%(780-20+1);
+        particles[i].radius = 5;
+        particles[i].speedY = -10 + rand()%(10+10+1);
+        particles[i].speedX = -10 + rand()%(10+10+1);
+        particles[i].colorRed = 255;
+        particles[i].colorGreen = 255;
         particles[i].colorBlue = 255;
-        particles[i].detailCirclesNum = 30;
+        particles[i].detailCirclesNum = 5;
     }
 
     while (window.isOpen())
@@ -105,30 +154,36 @@ int main()
 
         window.clear();
 
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 500; i++)
         {
+            assert(particles);
+
             drawSphere(particles[i], &window);
         }
 
-        drawSphere(particles[0], &window);
-
         window.display();
 
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 500; i++)
         {
-            for (int j = i + 1; j < 100; j++)
+            for (int j = i + 1; j < 500; j++)
             {
+                assert(particles);
+
                 collideTwoSpheres(&particles[i], &particles[j]);
             }
         }
 
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 500; i++)
         {
+            assert(particles);
+
             collideWithWall(&particles[i]);
         }
 
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 500; i++)
         {
+            assert(particles);
+
             moveSphere(&particles[i], dT);
         }
     }
