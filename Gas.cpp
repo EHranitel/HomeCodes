@@ -43,7 +43,7 @@ void collideWithWall(Sphere* sphere)
         sphere->y -= deltaY;
         
     }
-    if(sphere->x < 0)
+    else if(sphere->x < 0)
     {
         sphere->speedX = - sphere->speedX;
 
@@ -64,7 +64,7 @@ void collideWithWall(Sphere* sphere)
         sphere->y -= deltaY;
         sphere->x -= deltaX;
     }
-    if(sphere->y < 0)
+    else if(sphere->y < 0)
     {
         sphere->speedY = - sphere->speedY;
 
