@@ -107,6 +107,21 @@ void drawLine(Vector2f v1, Vector2f v2, sf::RenderWindow* window)
     window->draw(line);
 }
 
+void drawAllSphereConnections(Sphere* spheres, int sphereNumber, sf::RenderWindow* window)
+{
+    for (int i = 0; i < sphereNumber; i++)
+        {
+            for (int j = i + 1; j < sphereNumber; j++)
+            {
+                assert(spheres);
+
+                Vector2f v1(spheres[i].x + spheres[i].radius, spheres[i].y + spheres[i].radius);
+                Vector2f v2(spheres[j].x + spheres[j].radius, spheres[j].y + spheres[j].radius);
+                drawLine(v1, v2, window);
+            }
+        }
+}
+
 void changeRigidAcceleration(Sphere* sphere1, Sphere* sphere2, Rigid rigid)
 {
     Vector2f radiusVector1(sphere1->x, sphere1->y);
@@ -123,9 +138,42 @@ void changeRigidAcceleration(Sphere* sphere1, Sphere* sphere2, Rigid rigid)
     sphere2->accelerationY += acceleration2.y;
 }
 
+void changeAllSpheresRigidAcceleration(Sphere* spheres, int sphereNumber, Rigid rigids[4][4])
+{
+    for (int i = 0; i < sphereNumber; i++)
+        {
+            for (int j = i + 1; j < sphereNumber; j++)
+            {
+                assert(spheres);
+                
+                changeRigidAcceleration(&spheres[i], &spheres[j], rigids[i][j]);
+            }
+        }
+}
+
+void drawAllSpheres(Sphere* spheres, int sphereNumber, sf::RenderWindow* window)
+{
+    for (int i = 0; i < sphereNumber; i++)
+        {
+            assert(spheres);
+
+            spheres[i].draw(window);
+        }
+}
+
+void moveAllSpheres(Sphere* spheres, int sphereNumber, int dT)
+{
+    for (int i = 0; i < sphereNumber; i++)
+        {
+            assert(spheres);
+
+            spheres[i].move(dT);
+        }
+}
+
 int main()
 {
-    Sphere particles[4];
+    Sphere spheres[4];
     Rigid rigids[4][4]; 
 
     for (int i = 0; i < 4; i++)
@@ -141,20 +189,20 @@ int main()
     
     for (int i = 0; i < 4; i++)
     {   
-        assert(particles);
+        assert(spheres);
 
-        particles[i].mass = 25;
-        particles[i].x = 35 + rand()%(895 + 1);
-        particles[i].y = 35 + rand()%(695 + 1);
-        particles[i].radius = 35;
-        particles[i].speedY = 0;
-        particles[i].speedX = 0;
-        particles[i].accelerationX = 0;
-        particles[i].accelerationY = 0;
-        particles[i].colorRed = 255;
-        particles[i].colorGreen = 255;
-        particles[i].colorBlue = 255;
-        particles[i].detailCirclesNum = 50;
+        spheres[i].mass = 25;
+        spheres[i].x = 35 + rand()%(895 + 1);
+        spheres[i].y = 35 + rand()%(695 + 1);
+        spheres[i].radius = 35;
+        spheres[i].speedY = 0;
+        spheres[i].speedX = 0;
+        spheres[i].accelerationX = 0;
+        spheres[i].accelerationY = 0;
+        spheres[i].colorRed = 255;
+        spheres[i].colorGreen = 255;
+        spheres[i].colorBlue = 255;
+        spheres[i].detailCirclesNum = 50;
     }
 
     int dT = 1;
@@ -174,43 +222,14 @@ int main()
 
         window.clear();
 
-        for (int i = 0; i < 4; i++)
-        {
-            assert(particles);
-
-            particles[i].draw(&window);
-        }
-
-        for (int i = 0; i < 4; i++)
-        {
-            for (int j = i + 1; j < 4; j++)
-            {
-                assert(particles);
-
-                Vector2f v1(particles[i].x + particles[i].radius, particles[i].y + particles[i].radius);
-                Vector2f v2(particles[j].x + particles[j].radius, particles[j].y + particles[j].radius);
-                drawLine(v1, v2, &window);
-            }
-        }
+        drawAllSpheres(spheres, 4, &window);
+        drawAllSphereConnections(spheres, 4, &window);
 
         window.display();
 
-        for (int i = 0; i < 4; i++)
-        {
-            for (int j = i + 1; j < 4; j++)
-            {
-                assert(particles);
-                
-                changeRigidAcceleration(&particles[i], &particles[j], rigids[i][j]);
-            }
-        }
+        changeAllSpheresRigidAcceleration(spheres, 4, rigids);
 
-        for (int i = 0; i < 4; i++)
-        {
-            assert(particles);
-
-            particles[i].move(dT);
-        }
+        moveAllSpheres(spheres, 4, dT);
     }
 
     return 0;
