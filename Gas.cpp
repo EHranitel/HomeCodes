@@ -160,13 +160,14 @@ void moveAllParticles(Sphere* particles, int sphereNumber, float dT)
 
 int main()
 {
-    Sphere particles[500];
+    int sphereNumber = 500;
+    Sphere* particles = new Sphere[sphereNumber];
 
     int dT = 1;
 
     sf::RenderWindow window(sf::VideoMode(1000, 800), "SFML window");
 
-    for (int i = 0; i < 500; i++)
+    for (int i = 0; i < sphereNumber; i++)
     {   
         assert(particles);
 
@@ -194,12 +195,13 @@ int main()
 
         window.clear();
 
-        drawAllParticles(particles, 500, &window);
+        drawAllParticles(particles, sphereNumber, &window);
 
         window.display();
 
-        moveAllParticles(particles, 500, dT);
+        moveAllParticles(particles, sphereNumber, dT);
     }
 
+    delete[] particles;
     return 0;
 }
