@@ -92,6 +92,9 @@ class Sphere
 
         void move(float dT)
         {
+            speedX = speedX + accelerationX * dT;
+            speedY = speedY + accelerationY * dT;
+
             x = x + speedX * dT;
             y = y + speedY * dT;
         }
@@ -122,7 +125,7 @@ void drawAllSphereConnections(Sphere* spheres, int sphereNumber, sf::RenderWindo
         }
 }
 
-void changeRigidAccelerationAndSpeed(Sphere* sphere1, Sphere* sphere2, Rigid rigid, float dT)
+void changeRigidAcceleration(Sphere* sphere1, Sphere* sphere2, Rigid rigid, float dT)
 {
     Vector2f radiusVector1(sphere1->x, sphere1->y);
     Vector2f radiusVector2(sphere2->x, sphere2->y);
@@ -138,14 +141,9 @@ void changeRigidAccelerationAndSpeed(Sphere* sphere1, Sphere* sphere2, Rigid rig
     sphere1->accelerationY += acceleration1.y;
     sphere2->accelerationX += acceleration2.x;
     sphere2->accelerationY += acceleration2.y;
-
-    sphere1->speedX += sphere1->accelerationX * dT;
-    sphere1->speedY += sphere1->accelerationY * dT;
-    sphere2->speedX += sphere2->accelerationX * dT;
-    sphere2->speedY += sphere2->accelerationY * dT;
 }
 
-void changeAllSpheresRigidAccelerationAndSpeed(Sphere* spheres, int sphereNumber, Rigid rigids[4][4], float dT)
+void changeAllSpheresRigidAcceleration(Sphere* spheres, int sphereNumber, Rigid rigids[4][4], float dT)
 {
     for (int i = 0; i < sphereNumber; i++)
     {
@@ -159,7 +157,7 @@ void changeAllSpheresRigidAccelerationAndSpeed(Sphere* spheres, int sphereNumber
                 assert(spheres);
 
                 std::cout << i << " " << j << " ";
-                changeRigidAccelerationAndSpeed(&spheres[i], &spheres[j], rigids[i][j], dT);
+                changeRigidAcceleration(&spheres[i], &spheres[j], rigids[i][j], dT);
             }
         }
 }
@@ -240,7 +238,7 @@ int main()
 
         window.display();
 
-        changeAllSpheresRigidAccelerationAndSpeed(spheres, 4, rigids, dT);
+        changeAllSpheresRigidAcceleration(spheres, 4, rigids, dT);
 
         moveAllSpheres(spheres, 4, dT);
     }
