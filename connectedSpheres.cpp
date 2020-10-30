@@ -135,8 +135,6 @@ void changeRigidAcceleration(Sphere* sphere1, Sphere* sphere2, Rigid rigid, floa
     Vector2f acceleration2 = deltaRigid * (- (rigid.rigidity / sphere2->mass));
     Vector2f acceleration1 = deltaRigid * (rigid.rigidity / sphere1->mass);
 
-    std::cout << deltaTwoSpheres.length() << " " << sphere1->speedY << "\n" << acceleration1.x << " " << acceleration1.y << "\n" << acceleration2.x << " " << acceleration2.y << "\n";
-
     sphere1->accelerationX += acceleration1.x;
     sphere1->accelerationY += acceleration1.y;
     sphere2->accelerationX += acceleration2.x;
@@ -156,7 +154,6 @@ void changeAllSpheresRigidAcceleration(Sphere* spheres, int sphereNumber, Rigid 
             {
                 assert(spheres);
 
-                std::cout << i << " " << j << " ";
                 changeRigidAcceleration(&spheres[i], &spheres[j], rigids[i][j], dT);
             }
         }
