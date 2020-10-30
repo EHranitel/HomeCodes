@@ -45,7 +45,7 @@ class Vector2f
 
         float length()
         {
-            return sqrt(pow(x, 4) + pow(y, 4));
+            return sqrt(pow(x, 2) + pow(y, 2));
         }
 
         Vector2f normalize()
@@ -102,7 +102,7 @@ class Sphere
 
 void drawLine(Vector2f v1, Vector2f v2, sf::RenderWindow* window)
 {
-    sf::VertexArray line(sf::Lines, 4);
+    sf::VertexArray line(sf::Lines, 2);
 
     line[0].position = sf::Vector2f(v1.x, v1.y);
     line[1].position = sf::Vector2f(v2.x, v2.y);
@@ -141,11 +141,12 @@ void changeRigidAcceleration(Sphere* sphere1, Sphere* sphere2, Rigid rigid, floa
     sphere2->accelerationY += acceleration2.y;
 }
 
-void changeAllSpheresRigidAcceleration(Sphere* spheres, int sphereNumber, Rigid rigids[4][4], float dT)
+void changeAllSpheresRigidAcceleration(Sphere* spheres, int sphereNumber, Rigid** rigids, float dT)
 {
     for (int i = 0; i < sphereNumber; i++)
     {
         spheres[i].accelerationX = 0; 
+        spheres[i].accelerationY = 0; 
     }
     
     for (int i = 0; i < sphereNumber; i++)
@@ -181,25 +182,30 @@ void moveAllSpheres(Sphere* spheres, int sphereNumber, float dT)
 
 int main()
 {
-    Sphere spheres[4];
-    Rigid rigids[4][4]; 
+    int sphereNumber = 4;
+    Sphere* spheres = new Sphere[sphereNumber];
+    Rigid** rigids = new Rigid*[sphereNumber]; 
+    for (int i = 0; i < sphereNumber; i++)
+    { 
+        rigids[i] = new Rigid[sphereNumber];
+    }
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < sphereNumber; i++)
     {   
-        for (int j = i + 1; j < 4; j++)
+        for (int j = i + 1; j < sphereNumber; j++)
         {
             assert(rigids);
 
-            rigids[i][j].firstLength = 300;
+            rigids[i][j].firstLength = 200;
             rigids[i][j].rigidity = 0.1;
         }
     }
-    
-    for (int i = 0; i < 4; i++)
+
+    for (int i = 0; i < sphereNumber; i++)
     {   
         assert(spheres);
 
-        spheres[i].mass = 40000;
+        spheres[i].mass = 400;
         spheres[i].x = 35 + rand()%(895 + 1);
         spheres[i].y = 35 + rand()%(695 + 1);
         spheres[i].radius = 35;
@@ -230,15 +236,17 @@ int main()
 
         window.clear();
 
-        drawAllSpheres(spheres, 4, &window);
-        drawAllSphereConnections(spheres, 4, &window);
+        drawAllSpheres(spheres, sphereNumber, &window);
+        drawAllSphereConnections(spheres, sphereNumber, &window);
 
         window.display();
 
-        changeAllSpheresRigidAcceleration(spheres, 4, rigids, dT);
+        changeAllSpheresRigidAcceleration(spheres, sphereNumber, rigids, dT);
 
-        moveAllSpheres(spheres, 4, dT);
+        moveAllSpheres(spheres, sphereNumber, dT);
     }
 
+    delete[] spheres;
+    delete[] rigids;
     return 0;
 }
