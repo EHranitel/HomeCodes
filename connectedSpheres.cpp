@@ -4,55 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/System.hpp>
-
-class Vector2f
-{
-    public:
-
-        float x = 0;
-        float y = 0;
-
-        Vector2f (float x, float y)
-        {
-            this->x = x;
-            this->y = y;  
-        }
-
-        Vector2f operator+ (Vector2f v)
-        {
-            return Vector2f(x + v.x, y + v.y);
-        }
-
-        Vector2f operator- (Vector2f v)
-        {
-            return Vector2f(x - v.x, y - v.y);
-        }
-
-        Vector2f operator* (float n)
-        {
-            return Vector2f(x * n, y * n);
-        }
-
-        Vector2f operator/ (float n)
-        {
-            return Vector2f(x / n, y / n);
-        }
-
-        float operator* (Vector2f v)
-        {
-            return x * v.x + y * v.y;
-        }
-
-        float length()
-        {
-            return sqrt(pow(x, 2) + pow(y, 2));
-        }
-
-        Vector2f normalize()
-        {
-            return Vector2f(x / length(), y / length());
-        }
-};
+#include "Vector2f.h"
 
 class Rigid
 {
@@ -60,6 +12,21 @@ class Rigid
         
         float rigidity = 0;
         float firstLength = 0;
+        float x1 = 0;
+        float y1 = 0;
+        float x2 = 0;
+        float y2 = 0;
+        
+
+        void draw(sf::RenderWindow* window)
+        {
+            sf::VertexArray line(sf::Lines, 2);
+
+            line[0].position = sf::Vector2f(x1, y1);
+            line[1].position = sf::Vector2f(x2, y2);
+
+            window->draw(line);
+        }
 };
 
 class Sphere
@@ -92,53 +59,46 @@ class Sphere
 
         void move(float dT)
         {
+            x = x + speedX * dT + accelerationX * dT * dT / 2;
+            y = y + speedY * dT + accelerationX * dT * dT / 2;
+
             speedX = speedX + accelerationX * dT;
             speedY = speedY + accelerationY * dT;
+        }
 
-            x = x + speedX * dT;
-            y = y + speedY * dT;
+        void changeRigidAcceleration(Sphere* sphere, Rigid rigid, float dT)
+        {
+            Vector2f radiusVector1(x, y);
+            Vector2f radiusVector2(sphere->x, sphere->y);
+            Vector2f deltaTwoSpheres = radiusVector1 - radiusVector2;
+            Vector2f deltaRigid = deltaTwoSpheres.normalize() * (rigid.firstLength - deltaTwoSpheres.length());
+
+            Vector2f acceleration2 = deltaRigid * (- (rigid.rigidity / sphere->mass));
+            Vector2f acceleration1 = deltaRigid * (rigid.rigidity / mass);
+
+            accelerationX += acceleration1.x;
+            accelerationY += acceleration1.y;
+            sphere->accelerationX += acceleration2.x;
+            sphere->accelerationY += acceleration2.y;
         }
 };
 
-void drawLine(Vector2f v1, Vector2f v2, sf::RenderWindow* window)
-{
-    sf::VertexArray line(sf::Lines, 2);
-
-    line[0].position = sf::Vector2f(v1.x, v1.y);
-    line[1].position = sf::Vector2f(v2.x, v2.y);
-
-    window->draw(line);
-}
-
-void drawAllSphereConnections(Sphere* spheres, int sphereNumber, sf::RenderWindow* window)
+void drawAllSphereConnections(Sphere* spheres, Rigid** rigids, int sphereNumber, sf::RenderWindow* window)
 {
     for (int i = 0; i < sphereNumber; i++)
         {
             for (int j = i + 1; j < sphereNumber; j++)
             {
-                assert(spheres);
+                assert(rigids);
 
-                Vector2f v1(spheres[i].x + spheres[i].radius, spheres[i].y + spheres[i].radius);
-                Vector2f v2(spheres[j].x + spheres[j].radius, spheres[j].y + spheres[j].radius);
-                drawLine(v1, v2, window);
+                rigids[i][j].x1 = spheres[i].x + spheres[i].radius;
+                rigids[i][j].y1 = spheres[i].y + spheres[i].radius;
+                rigids[i][j].x2 = spheres[j].x + spheres[i].radius;
+                rigids[i][j].y2 = spheres[j].y + spheres[i].radius;
+
+                rigids[i][j].draw(window);
             }
         }
-}
-
-void changeRigidAcceleration(Sphere* sphere1, Sphere* sphere2, Rigid rigid, float dT)
-{
-    Vector2f radiusVector1(sphere1->x, sphere1->y);
-    Vector2f radiusVector2(sphere2->x, sphere2->y);
-    Vector2f deltaTwoSpheres = radiusVector1 - radiusVector2;
-    Vector2f deltaRigid = deltaTwoSpheres.normalize() * (rigid.firstLength - deltaTwoSpheres.length());
-
-    Vector2f acceleration2 = deltaRigid * (- (rigid.rigidity / sphere2->mass));
-    Vector2f acceleration1 = deltaRigid * (rigid.rigidity / sphere1->mass);
-
-    sphere1->accelerationX += acceleration1.x;
-    sphere1->accelerationY += acceleration1.y;
-    sphere2->accelerationX += acceleration2.x;
-    sphere2->accelerationY += acceleration2.y;
 }
 
 void changeAllSpheresRigidAcceleration(Sphere* spheres, int sphereNumber, Rigid** rigids, float dT)
@@ -155,7 +115,7 @@ void changeAllSpheresRigidAcceleration(Sphere* spheres, int sphereNumber, Rigid*
             {
                 assert(spheres);
 
-                changeRigidAcceleration(&spheres[i], &spheres[j], rigids[i][j], dT);
+                spheres[i].changeRigidAcceleration(&spheres[j], rigids[i][j], dT);
             }
         }
 }
@@ -183,22 +143,12 @@ void moveAllSpheres(Sphere* spheres, int sphereNumber, float dT)
 int main()
 {
     int sphereNumber = 4;
+
     Sphere* spheres = new Sphere[sphereNumber];
     Rigid** rigids = new Rigid*[sphereNumber]; 
     for (int i = 0; i < sphereNumber; i++)
     { 
         rigids[i] = new Rigid[sphereNumber];
-    }
-
-    for (int i = 0; i < sphereNumber; i++)
-    {   
-        for (int j = i + 1; j < sphereNumber; j++)
-        {
-            assert(rigids);
-
-            rigids[i][j].firstLength = 200;
-            rigids[i][j].rigidity = 0.1;
-        }
     }
 
     for (int i = 0; i < sphereNumber; i++)
@@ -219,6 +169,21 @@ int main()
         spheres[i].detailCirclesNum = 50;
     }
 
+    for (int i = 0; i < sphereNumber; i++)
+    {   
+        for (int j = i + 1; j < sphereNumber; j++)
+        {
+            assert(rigids);
+
+            rigids[i][j].firstLength = 200;
+            rigids[i][j].rigidity = 0.1;
+            rigids[i][j].x1 = spheres[i].x + spheres[i].radius;
+            rigids[i][j].y1 = spheres[i].y + spheres[i].radius;
+            rigids[i][j].x2 = spheres[j].x + spheres[i].radius;
+            rigids[i][j].y2 = spheres[j].y + spheres[i].radius;
+        }
+    }
+
     float dT = 0.1;
 
     sf::RenderWindow window(sf::VideoMode(1000, 800), "SFML window");
@@ -237,7 +202,7 @@ int main()
         window.clear();
 
         drawAllSpheres(spheres, sphereNumber, &window);
-        drawAllSphereConnections(spheres, sphereNumber, &window);
+        drawAllSphereConnections(spheres, rigids, sphereNumber, &window);
 
         window.display();
 
@@ -247,6 +212,11 @@ int main()
     }
 
     delete[] spheres;
-    delete[] rigids;
+
+    for (int i = 0; i < sphereNumber; i++)
+    { 
+        delete[] rigids[i];
+    }
+
     return 0;
 }
