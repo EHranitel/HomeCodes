@@ -10,6 +10,7 @@ class Sphere
 {
     public:
 
+        float mass = 0;
         float x = 0;
         float y = 0;
         int radius = 0;

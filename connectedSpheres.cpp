@@ -12,18 +12,15 @@ class Rigid
         
         float rigidity = 0;
         float firstLength = 0;
-        float x1 = 0;
-        float y1 = 0;
-        float x2 = 0;
-        float y2 = 0;
-        
+        Vector2f r1 = Vector2f(0, 0);
+        Vector2f r2 = Vector2f(0, 0);
 
         void draw(sf::RenderWindow* window)
         {
             sf::VertexArray line(sf::Lines, 2);
 
-            line[0].position = sf::Vector2f(x1, y1);
-            line[1].position = sf::Vector2f(x2, y2);
+            line[0].position = sf::Vector2f(r1.x, r1.y);
+            line[1].position = sf::Vector2f(r2.x, r2.y);
 
             window->draw(line);
         }
@@ -91,10 +88,10 @@ void drawAllSphereConnections(Sphere* spheres, Rigid** rigids, int sphereNumber,
             {
                 assert(rigids);
 
-                rigids[i][j].x1 = spheres[i].x + spheres[i].radius;
-                rigids[i][j].y1 = spheres[i].y + spheres[i].radius;
-                rigids[i][j].x2 = spheres[j].x + spheres[i].radius;
-                rigids[i][j].y2 = spheres[j].y + spheres[i].radius;
+                rigids[i][j].r1.x = spheres[i].x + spheres[i].radius;
+                rigids[i][j].r1.y = spheres[i].y + spheres[i].radius;
+                rigids[i][j].r2.x = spheres[j].x + spheres[i].radius;
+                rigids[i][j].r2.y = spheres[j].y + spheres[i].radius;
 
                 rigids[i][j].draw(window);
             }
@@ -177,10 +174,10 @@ int main()
 
             rigids[i][j].firstLength = 200;
             rigids[i][j].rigidity = 0.1;
-            rigids[i][j].x1 = spheres[i].x + spheres[i].radius;
-            rigids[i][j].y1 = spheres[i].y + spheres[i].radius;
-            rigids[i][j].x2 = spheres[j].x + spheres[i].radius;
-            rigids[i][j].y2 = spheres[j].y + spheres[i].radius;
+            rigids[i][j].r1.x = spheres[i].x + spheres[i].radius;
+            rigids[i][j].r1.y = spheres[i].y + spheres[i].radius;
+            rigids[i][j].r2.x = spheres[j].x + spheres[i].radius;
+            rigids[i][j].r2.y = spheres[j].y + spheres[i].radius;
         }
     }
 
