@@ -9,7 +9,7 @@
 int main()
     {
 
-    FILE* f = fopen("String.h", "r");
+    FILE* f = fopen("Vector2f.h", "r");
 
     fseek(f, 0, SEEK_END);
     long size = ftell(f);
@@ -24,7 +24,6 @@ int main()
     fclose(f);
 
     sf::RenderWindow window(sf::VideoMode(1000, 800), "SFML window");
-    window.setKeyRepeatEnabled(false);
 
     sf::Font Font;
 
@@ -66,14 +65,8 @@ int main()
                     {
                         lineNumber++;
                     }
-                    
-                    //std::cout << changingText.text << std::endl;
-                    //std::cout << strBuffer[i] << std::endl;
-                    //std::cout << changingText[i - deletedCharNumber] << " " << "1"  << std::endl;
 
-                    changingText.text[i] = strBuffer.text[i];
-
-                    //std::cout << changingText[i - deletedCharNumber] << std::endl;
+                    changingText.text[i - deletedCharNumber] = strBuffer.text[i];
                 }
 
                 count += portionLen;
@@ -84,10 +77,11 @@ int main()
 
                     int lenOfFIrstLine = changingText.findFirstOf('\n');
 
-                    String* splits = changingText.split(lenOfFIrstLine);
-                    std::cout << splits[0].text << "\n\n\n" << splits[1].text << std::endl;
+                    deletedCharNumber += lenOfFIrstLine + 1;
 
-                    delete[]changingText.text;
+                    String* splits = changingText.split(lenOfFIrstLine + 1);
+                    
+                    delete[] changingText.text;
 
                     changingText.text = splits[1].text;
 
@@ -95,7 +89,6 @@ int main()
                 }
             }
         }        
-
         text.setString(changingText.text);
 
         window.clear();
