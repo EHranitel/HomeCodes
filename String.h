@@ -76,11 +76,11 @@ class String
 
         char* str1 = new char[index];
 
-        str1[index - 1] = '\0';
+        str1[index] = '\0';
 
         char* str2 = new char[length() - index];
 
-        str2[length() - index - 1] = '\0';
+        str2[length() - index] = '\0';
 
         int i = 0;
 
@@ -126,7 +126,7 @@ class String
             str[length() + i] = s.text[i];
         }
 
-        str[len - 1] = '\0';
+        str[len] = '\0';
 
         String resultS;
         resultS.text = str;
@@ -176,40 +176,29 @@ class String
 /*int main()
 {
     String str1("zxc123zxc");
-
     std::cout << str1.text << std::endl;
-
     char c = 'z';
     
     std::cout << str1.length() << std::endl;
-
     std::cout << str1.countChar(c) << std::endl;
-
     std::cout << str1.findFirstOf(c) << std::endl;
-
     String* strSplit = str1.split(4);
     String str2 = strSplit[0];
     String str3 = strSplit[1];
     std::cout << str2.text << " " << str3.text << std::endl;
-
     String str4 = str1 + str2;
     std::cout << str4.text << std::endl;
-
     std::cout << str1[3] << std::endl;
-
     char* testChar1 = "zxc";
     char* testChar2 = "cxz"; 
-
     if (str1.findstr(testChar1))
     {
         std::cout << "YES" << std::endl;
     }
-
     if (not str1.findstr(testChar2))
     {
         std::cout << "NO" << std::endl;
     }
-
     return 0;
 }*/
 

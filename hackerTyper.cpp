@@ -9,7 +9,7 @@
 int main()
     {
 
-    FILE* f = fopen("Vector2f.h", "r");
+    FILE* f = fopen("TESTLONGCODE.cpp", "r");
 
     fseek(f, 0, SEEK_END);
     long size = ftell(f);
@@ -36,16 +36,19 @@ int main()
     text.setPosition(0, 0);
     text.setFillColor(sf::Color::Green);
 
-    float count = 0;
+    int count = 0;
     int lineNumber = 1;
     int portionLen = 5;
-    int deletedCharNumber = 0;
+    int deletedCharNum = 0;
 
     int len = strBuffer.length();
 
     char* changingChar = new char[len];
+    
+    changingChar[0] = '\0';
 
-    String changingText(changingChar);
+    String changingText = String();
+    changingText.text = changingChar;
 
     while (window.isOpen())
     {   
@@ -59,6 +62,13 @@ int main()
 
             else if(event.type == sf::Event::KeyPressed) 
             {
+                if (count + portionLen >= len)
+                {
+                    delete[] changingChar;
+
+                    return 0;
+                }
+
                 for (int i = count; i < count + portionLen; i++)
                 {
                     if (strBuffer.text[i] == '\n')
@@ -66,10 +76,12 @@ int main()
                         lineNumber++;
                     }
 
-                    changingText.text[i - deletedCharNumber] = strBuffer.text[i];
+                    changingText.text[i - deletedCharNum] = strBuffer.text[i];
                 }
 
                 count += portionLen;
+
+                changingText.text[count - deletedCharNum] = '\0';
 
                 while (lineNumber > 34)
                 {
@@ -77,18 +89,32 @@ int main()
 
                     int lenOfFIrstLine = changingText.findFirstOf('\n');
 
-                    deletedCharNumber += lenOfFIrstLine + 1;
+                    deletedCharNum += lenOfFIrstLine + 1;
 
                     String* splits = changingText.split(lenOfFIrstLine + 1);
                     
-                    delete[] changingText.text;
-
-                    changingText.text = splits[1].text;
-
                     delete[] splits[0].text;
+
+                    delete[] changingChar;
+
+                    char* changingChar = new char[len];
+
+                    int leng = splits[1].length();
+
+                    for (int i = 0; i < leng; i++)
+                    {
+                        changingChar[i] = splits[1].text[i];
+                    }
+
+                    changingChar[leng] = '\0';
+                        
+                    changingText.text = changingChar;   
+
+                    delete[] splits[1].text;
                 }
             }
         }        
+
         text.setString(changingText.text);
 
         window.clear();
@@ -96,10 +122,5 @@ int main()
         window.draw(text);
 
         window.display();
-
-        if (count >= len)
-        {
-            return 0;
-        }
     }
 }
